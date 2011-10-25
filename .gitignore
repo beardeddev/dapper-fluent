@@ -1,0 +1,10 @@
+*.dll
+*.pdb
+*.suo
+*.Cache
+/packages
+[Oo]bj/
+[Bb]in/
+*.user
+*.vspscc
+*.vssscc
