@@ -1,5 +1,0 @@
-E:\Probes\Dapper.Extensions\Dapper.Extensions\obj\Debug\ResolveAssemblyReference.cache
-E:\Probes\Dapper.Extensions\Dapper.Extensions\bin\Debug\Dapper.Extensions.dll
-E:\Probes\Dapper.Extensions\Dapper.Extensions\bin\Debug\Dapper.Extensions.pdb
-E:\Probes\Dapper.Extensions\Dapper.Extensions\obj\Debug\Dapper.Extensions.dll
-E:\Probes\Dapper.Extensions\Dapper.Extensions\obj\Debug\Dapper.Extensions.pdb

@@ -2,6 +2,7 @@
 *.pdb
 *.suo
 *.Cache
+packages/
 /packages
 [Oo]bj/
 [Bb]in/

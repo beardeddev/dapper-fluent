@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{471CD7D0-5BDA-43A2-96A8-0A8E2572A247}</ProjectGuid>
+    <ProjectGuid>{B1D46572-91EC-4B56-A7B1-37ABCBD7D57F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Dapper.Extensions</RootNamespace>
-    <AssemblyName>Dapper.Extensions</AssemblyName>
+    <RootNamespace>Dapper.Fluent.Tests</RootNamespace>
+    <AssemblyName>Dapper.Fluent.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -32,19 +32,25 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="xunit">
+      <HintPath>..\Dapper.Fluent\packages\xunit.1.9.1\lib\net20\xunit.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConnectionManager.cs" />
-    <Compile Include="Dapper\SqlMapper.cs" />
-    <Compile Include="DbManager.cs" />
+    <Compile Include="Facts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Dapper.Fluent\Dapper.Fluent.csproj">
+      <Project>{972D7E05-F949-42E2-9EE1-C8E631A1AC2C}</Project>
+      <Name>Dapper.Fluent</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
