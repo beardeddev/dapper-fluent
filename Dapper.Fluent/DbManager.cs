@@ -7,12 +7,15 @@ using System.Collections;
 
 namespace Dapper.Fluent
 {
+    /// <summary>
+    /// Provides support for fluent API query construction and execution over database connection.
+    /// </summary>
     public class DbManager : IDbManager
     {
         #region Private members        
-        private bool _Disposed;
-        private bool _buffered = true;
-        private DynamicParameters _Parameters;
+        private bool disposed;
+        private bool buffered = true;
+        private DynamicParameters parameters;
         #endregion
 
         #region Ctor
@@ -32,7 +35,7 @@ namespace Dapper.Fluent
 
             this.DbConnection = connection;
             this.DbCommand = connection.CreateCommand();
-            this._Parameters = new DynamicParameters();
+            this.parameters = new DynamicParameters();
         } 
         #endregion
 
@@ -92,6 +95,19 @@ namespace Dapper.Fluent
         /// Gets the db command.
         /// </summary>
         public IDbCommand DbCommand { get; private set; }
+
+        /// <summary>
+        /// The parameters of the SQL statement or stored procedure. 
+        /// The default is an empty collection.
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, object>> Parameters
+        {
+            get
+            {
+                foreach (string name in this.parameters.ParameterNames)
+                    yield return new KeyValuePair<string, object>(name, this.parameters.Get<object>(name));
+            }
+        }
         #endregion
 
         #region IDisposable members
@@ -110,7 +126,7 @@ namespace Dapper.Fluent
         /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!_Disposed)
+            if (!disposed)
             {
                 if (disposing)
                 {
@@ -122,7 +138,7 @@ namespace Dapper.Fluent
                         this.DbConnection.Dispose();
                     }
                 }
-                _Disposed = true;
+                disposed = true;
             }
         }
 
@@ -136,6 +152,7 @@ namespace Dapper.Fluent
         }
         #endregion
 
+        #region Query execution methods
         /// <summary>
         /// Executes a SQL statement against the connection and returns the result.
         /// </summary>
@@ -144,7 +161,7 @@ namespace Dapper.Fluent
         /// </returns>
         public object Execute()
         {
-            return this.DbConnection.Query<Object>(DbCommand.CommandText, _Parameters, Transaction, this._buffered, this.DbCommand.CommandTimeout, DbCommand.CommandType)
+            return this.DbConnection.Query<Object>(DbCommand.CommandText, parameters, Transaction, this.buffered, this.DbCommand.CommandTimeout, DbCommand.CommandType)
                 .FirstOrDefault();
         }
 
@@ -157,7 +174,7 @@ namespace Dapper.Fluent
         /// </returns>
         public IEnumerable<T> ExecuteList<T>() where T : class
         {
-            return this.DbConnection.Query<T>(DbCommand.CommandText, _Parameters, Transaction, this._buffered, this.DbCommand.CommandTimeout, DbCommand.CommandType);
+            return this.DbConnection.Query<T>(DbCommand.CommandText, parameters, Transaction, this.buffered, this.DbCommand.CommandTimeout, DbCommand.CommandType);
         }
 
         /// <summary>
@@ -180,7 +197,7 @@ namespace Dapper.Fluent
         /// </returns>
         public T ExecuteObject<T>() where T : class
         {
-            return this.DbConnection.Query<T>(DbCommand.CommandText, _Parameters, Transaction, true, this.DbCommand.CommandTimeout, DbCommand.CommandType).FirstOrDefault();
+            return this.DbConnection.Query<T>(DbCommand.CommandText, parameters, Transaction, true, this.DbCommand.CommandTimeout, DbCommand.CommandType).FirstOrDefault();
         }
 
         /// <summary>
@@ -216,7 +233,7 @@ namespace Dapper.Fluent
         /// </returns>
         public Tuple<IEnumerable<T1>, IEnumerable<T2>> ExecuteMultiple<T1, T2>()
         {
-            using (var rs = this.DbConnection.QueryMultiple(DbCommand.CommandText, this._Parameters, this.Transaction, this.DbCommand.CommandTimeout, DbCommand.CommandType))
+            using (var rs = this.DbConnection.QueryMultiple(DbCommand.CommandText, this.parameters, this.Transaction, this.DbCommand.CommandTimeout, DbCommand.CommandType))
             {
                 IEnumerable<T1> item1 = rs.Read<T1>();
                 IEnumerable<T2> item2 = rs.Read<T2>();
@@ -236,7 +253,7 @@ namespace Dapper.Fluent
         /// </returns>
         public virtual Tuple<IEnumerable<T1>, IEnumerable<T2>, IEnumerable<T3>> ExecuteMultiple<T1, T2, T3>()
         {
-            using (var rs = this.DbConnection.QueryMultiple(DbCommand.CommandText, this._Parameters, this.Transaction, this.DbCommand.CommandTimeout, DbCommand.CommandType))
+            using (var rs = this.DbConnection.QueryMultiple(DbCommand.CommandText, this.parameters, this.Transaction, this.DbCommand.CommandTimeout, DbCommand.CommandType))
             {
                 IEnumerable<T1> item1 = rs.Read<T1>();
                 IEnumerable<T2> item2 = rs.Read<T2>();
@@ -246,6 +263,33 @@ namespace Dapper.Fluent
             }
         }
 
+        /// <summary>
+        /// Executes SQL statement against the connection and builds a <see cref="System.Collections.IDictionary"/>.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.Collections.IDictionary"/> object.
+        /// </returns>
+        public virtual IDictionary ExecuteDictionary()
+        {
+            IDictionary result = new Dictionary<string, object>();
+
+            using (IDataReader dr = this.ExecuteReader())
+            {
+                if (dr.Read())
+                {
+                    foreach (DataRow row in dr.GetSchemaTable().Rows)
+                    {
+                        string key = row["ColumnName"].ToString();
+                        result.Add(key, dr[key]);
+                    }
+                }
+            }
+
+            return result;
+        }
+        #endregion
+
+        #region Fluent API
         /// <summary>
         /// Adds a parameter to the parameter collection with the parameter name, parameter value, the data type, the parameter direction, and the column length.
         /// </summary>
@@ -259,7 +303,7 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager AddParameter(string name, object value, DbType dbType, ParameterDirection direction, int? size)
         {
-            this._Parameters.Add(name, value, dbType, direction, size);
+            this.parameters.Add(name, value, dbType, direction, size);
             return this;
         }
 
@@ -302,7 +346,7 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager AddParameter(string name, object value)
         {
-            this._Parameters.Add(name, value);
+            this.parameters.Add(name, value);
             return this;
         }
 
@@ -316,7 +360,7 @@ namespace Dapper.Fluent
         public IDbManager SetCommand(string commandText)
         {
             this.DbCommand.CommandText = commandText;
-            this.DbCommand.CommandType = CommandType.Text;            
+            this.DbCommand.CommandType = CommandType.Text;
             return this;
         }
 
@@ -330,7 +374,7 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager SetCommand(string commandText, object parameters)
         {
-            this._Parameters = this.CreateParameters(parameters);
+            this.parameters = this.CreateParameters(parameters);
             return this.SetCommand(commandText);
         }
 
@@ -358,26 +402,16 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager SetSpCommand(string commandText, object parameters)
         {
-            this._Parameters = this.CreateParameters(parameters);
+            this.parameters = this.CreateParameters(parameters);
             return this.SetSpCommand(commandText);
-        }
+        } 
+        #endregion
 
-        /// <summary>
-        /// The parameters of the SQL statement or stored procedure. 
-        /// The default is an empty collection.
-        /// </summary>
-        public IEnumerable<KeyValuePair<string, object>> Parameters
-        {
-            get 
-            {
-                foreach(string name in this._Parameters.ParameterNames)
-                    yield return new KeyValuePair<string, object>(name, this._Parameters.Get<object>(name));
-            }
-        }
-
+        #region Private methods
         private DynamicParameters CreateParameters(object param)
         {
             return new DynamicParameters(param);
-        }
+        } 
+        #endregion
     }
 }

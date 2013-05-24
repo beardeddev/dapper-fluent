@@ -67,7 +67,7 @@ namespace Dapper.Fluent
         /// A collection of objects returned by the query.
         /// </returns>
         IEnumerable<T> ExecuteList<T>() where T : class;
-
+        
         /// <summary>
         /// Executes a SQL statement against the connection and returns the number of rows affected.
         /// </summary>
@@ -96,6 +96,12 @@ namespace Dapper.Fluent
         /// <returns>A <see cref="IDataReader"/> object.</returns>
         IDataReader ExecuteReader(CommandBehavior behavior);
 
+        /// <summary>
+        /// Executes SQL statement against the connection and builds a <see cref="System.Collections.IDictionary"/>.
+        /// </summary>
+        /// <returns>A <see cref="System.Collections.IDictionary"/> object.</returns>
+        IDictionary ExecuteDictionary();
+        
         /// <summary>
         /// Executes SQL statement against the connection and builds multiple result sets.
         /// </summary>
