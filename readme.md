@@ -64,3 +64,7 @@ dbManager.SetCommand("SELECT * FROM [dbo].[Posts] WHERE [PublishedOn] BETWEEN @S
     .AddParameter("Status", (byte)Status.Active)
     .ExecuteList<Post>();
 ```
+
+### TODO:
+- Implement unit tests
+- Add example of using IOC, best practices
