@@ -15,7 +15,10 @@ namespace Dapper.Fluent
         #region Private members        
         private bool disposed;
         private bool buffered = true;
+        private string commandText;
+        private int? commandTimeout;
         private DynamicParameters parameters;
+        private CommandType commandType;
         #endregion
 
         #region Ctor
@@ -34,7 +37,6 @@ namespace Dapper.Fluent
                 connection.Open();
 
             this.DbConnection = connection;
-            this.DbCommand = connection.CreateCommand();
             this.parameters = new DynamicParameters();
         } 
         #endregion
@@ -94,20 +96,35 @@ namespace Dapper.Fluent
         /// <summary>
         /// Gets the db command.
         /// </summary>
-        public IDbCommand DbCommand { get; private set; }
-
-        /// <summary>
-        /// The parameters of the SQL statement or stored procedure. 
-        /// The default is an empty collection.
-        /// </summary>
-        public IEnumerable<KeyValuePair<string, object>> Parameters
+        public IDbCommand DbCommand 
         {
             get
             {
-                foreach (string name in this.parameters.ParameterNames)
-                    yield return new KeyValuePair<string, object>(name, this.parameters.Get<object>(name));
+                using (IDbCommand dbCommand = this.DbConnection.CreateCommand())
+                {
+                    if (string.IsNullOrEmpty(this.commandText))
+                    {
+                        throw new ArgumentNullException("commandText");
+                    }
+
+                    dbCommand.CommandText = this.commandText;
+                    dbCommand.CommandType = this.commandType;
+
+                    if (this.commandTimeout.HasValue)
+                        dbCommand.CommandTimeout = this.commandTimeout.Value;
+
+                    if (this.Transaction != null)
+                        dbCommand.Transaction = this.Transaction;
+
+                    foreach (IDbDataParameter param in this.parameters.GetAttachedParams(dbCommand))
+                        dbCommand.Parameters.Add(param);
+
+                    return dbCommand;
+                }
             }
         }
+
+        
         #endregion
 
         #region IDisposable members
@@ -153,17 +170,6 @@ namespace Dapper.Fluent
         #endregion
 
         #region Query execution methods
-        /// <summary>
-        /// Executes a SQL statement against the connection and returns the result.
-        /// </summary>
-        /// <returns>
-        /// A object returned by the query.
-        /// </returns>
-        public object Execute()
-        {
-            return this.DbConnection.Query<Object>(DbCommand.CommandText, parameters, Transaction, this.buffered, this.DbCommand.CommandTimeout, DbCommand.CommandType)
-                .FirstOrDefault();
-        }
 
         /// <summary>
         /// Executes SQL statement on the database and returns a collection of objects.
@@ -174,7 +180,59 @@ namespace Dapper.Fluent
         /// </returns>
         public IEnumerable<T> ExecuteList<T>() where T : class
         {
-            return this.DbConnection.Query<T>(DbCommand.CommandText, parameters, Transaction, this.buffered, this.DbCommand.CommandTimeout, DbCommand.CommandType);
+            return this.DbConnection.Query<T>(this.commandText, this.parameters, this.Transaction, this.buffered, this.commandTimeout, this.commandType);
+        }
+
+        /// <summary>
+        /// Executes SQL statement against the connection and returns the result.
+        /// </summary>
+        /// <typeparam name="T">The type of the element to be the returned.</typeparam>
+        /// <returns>
+        /// An object returned by the query.
+        /// </returns>
+        public T ExecuteObject<T>() where T : class
+        {
+            return this.DbConnection.Query<T>(this.commandText, this.parameters, this.Transaction, this.buffered, this.commandTimeout, this.commandType).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Executes SQL statement against the connection and builds multiple result sets.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first result set elements to be the returned.</typeparam>
+        /// <typeparam name="T2">The type of the second result set elements to be the returned.</typeparam>
+        /// <returns>
+        /// A <see cref="System.Tuple&lt;T1, T2&gt;"/> object of multiple result sets returned by the query.
+        /// </returns>
+        public Tuple<IEnumerable<T1>, IEnumerable<T2>> ExecuteMultiple<T1, T2>()
+        {
+            using (var rs = this.DbConnection.QueryMultiple(commandText, this.parameters, this.Transaction, this.commandTimeout, this.commandType))
+            {
+                IEnumerable<T1> item1 = rs.Read<T1>();
+                IEnumerable<T2> item2 = rs.Read<T2>();
+
+                return new Tuple<IEnumerable<T1>, IEnumerable<T2>>(item1, item2);
+            }
+        }
+
+        /// <summary>
+        /// Executes SQL statement against the connection and builds multiple result sets.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first result set elements to be the returned.</typeparam>
+        /// <typeparam name="T2">The type of the second result set elements to be the returned.</typeparam>
+        /// <typeparam name="T3">The type of the third result set elements to be the returned.</typeparam>
+        /// <returns>
+        /// A <see cref="System.Tuple&lt;T1, T2, T3&gt;"/> object of multiple result sets returned by the query.
+        /// </returns>
+        public virtual Tuple<IEnumerable<T1>, IEnumerable<T2>, IEnumerable<T3>> ExecuteMultiple<T1, T2, T3>()
+        {
+            using (var rs = this.DbConnection.QueryMultiple(this.commandText, this.parameters, this.Transaction, this.commandTimeout, this.commandType))
+            {
+                IEnumerable<T1> item1 = rs.Read<T1>();
+                IEnumerable<T2> item2 = rs.Read<T2>();
+                IEnumerable<T3> item3 = rs.Read<T3>();
+
+                return new Tuple<IEnumerable<T1>, IEnumerable<T2>, IEnumerable<T3>>(item1, item2, item3);
+            }
         }
 
         /// <summary>
@@ -189,15 +247,15 @@ namespace Dapper.Fluent
         }
 
         /// <summary>
-        /// Executes SQL statement against the connection and returns the result.
+        /// Executes a SQL statement against the connection and returns the result.
         /// </summary>
-        /// <typeparam name="T">The type of the element to be the returned.</typeparam>
+        /// <typeparam name="T">The type of the returned result.</typeparam>
         /// <returns>
-        /// An object returned by the query.
+        /// A object returned by the query.
         /// </returns>
-        public T ExecuteObject<T>() where T : class
+        public T ExecuteScalar<T>()
         {
-            return this.DbConnection.Query<T>(DbCommand.CommandText, parameters, Transaction, true, this.DbCommand.CommandTimeout, DbCommand.CommandType).FirstOrDefault();
+            return (T)this.DbCommand.ExecuteScalar();
         }
 
         /// <summary>
@@ -221,46 +279,6 @@ namespace Dapper.Fluent
         public IDataReader ExecuteReader(CommandBehavior behavior)
         {
             return this.DbCommand.ExecuteReader(behavior);
-        }
-
-        /// <summary>
-        /// Executes SQL statement against the connection and builds multiple result sets.
-        /// </summary>
-        /// <typeparam name="T1">The type of the first result set elements to be the returned.</typeparam>
-        /// <typeparam name="T2">The type of the second result set elements to be the returned.</typeparam>
-        /// <returns>
-        /// A <see cref="System.Tuple&lt;T1, T2&gt;"/> object of multiple result sets returned by the query.
-        /// </returns>
-        public Tuple<IEnumerable<T1>, IEnumerable<T2>> ExecuteMultiple<T1, T2>()
-        {
-            using (var rs = this.DbConnection.QueryMultiple(DbCommand.CommandText, this.parameters, this.Transaction, this.DbCommand.CommandTimeout, DbCommand.CommandType))
-            {
-                IEnumerable<T1> item1 = rs.Read<T1>();
-                IEnumerable<T2> item2 = rs.Read<T2>();
-
-                return new Tuple<IEnumerable<T1>, IEnumerable<T2>>(item1, item2);
-            }
-        }
-
-        /// <summary>
-        /// Executes SQL statement against the connection and builds multiple result sets.
-        /// </summary>
-        /// <typeparam name="T1">The type of the first result set elements to be the returned.</typeparam>
-        /// <typeparam name="T2">The type of the second result set elements to be the returned.</typeparam>
-        /// <typeparam name="T3">The type of the third result set elements to be the returned.</typeparam>
-        /// <returns>
-        /// A <see cref="System.Tuple&lt;T1, T2, T3&gt;"/> object of multiple result sets returned by the query.
-        /// </returns>
-        public virtual Tuple<IEnumerable<T1>, IEnumerable<T2>, IEnumerable<T3>> ExecuteMultiple<T1, T2, T3>()
-        {
-            using (var rs = this.DbConnection.QueryMultiple(DbCommand.CommandText, this.parameters, this.Transaction, this.DbCommand.CommandTimeout, DbCommand.CommandType))
-            {
-                IEnumerable<T1> item1 = rs.Read<T1>();
-                IEnumerable<T2> item2 = rs.Read<T2>();
-                IEnumerable<T3> item3 = rs.Read<T3>();
-
-                return new Tuple<IEnumerable<T1>, IEnumerable<T2>, IEnumerable<T3>>(item1, item2, item3);
-            }
         }
 
         /// <summary>
@@ -308,7 +326,7 @@ namespace Dapper.Fluent
         }
 
         /// <summary>
-        /// Adds a parameter to the parameter collection with the parameter name, parameter param, the data type, and the parameter direction.
+        /// Adds a parameter to the parameter collection with the parameter name, parameter value, the data type, and the parameter direction.
         /// </summary>
         /// <param name="name">The name of the parameter.</param>
         /// <param name="value">The parameter value.</param>
@@ -337,7 +355,7 @@ namespace Dapper.Fluent
         }
 
         /// <summary>
-        /// Adds a parameter to the parameter collection with the parameter name, and param.
+        /// Adds a parameter to the parameter collection with the parameter name.
         /// </summary>
         /// <param name="name">The name of the parameter.</param>
         /// <param name="value">The parameter value.</param>
@@ -346,7 +364,17 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager AddParameter(string name, object value)
         {
-            this.parameters.Add(name, value);
+            return this.AddParameter(name, value, SqlMapper.LookupDbType(value.GetType(), name), ParameterDirection.Input, null);
+        }
+
+        /// <summary>
+        /// Construct a parameter from object and adds a parameters to the parameter collection.
+        /// </summary>
+        /// <param name="value">Can be an anonymous type or a DynamicParameters bag.</param>
+        /// <returns>A <see cref="Dapper.Fluent.IDbManager"/> instance.</returns>
+        public IDbManager AddParameters(object value)
+        {
+            this.parameters.AddDynamicParams(value);
             return this;
         }
 
@@ -359,8 +387,8 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager SetCommand(string commandText)
         {
-            this.DbCommand.CommandText = commandText;
-            this.DbCommand.CommandType = CommandType.Text;
+            this.commandText = commandText;
+            this.commandType = CommandType.Text;
             return this;
         }
 
@@ -374,7 +402,7 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager SetCommand(string commandText, object parameters)
         {
-            this.parameters = this.CreateParameters(parameters);
+            this.parameters.AddDynamicParams(parameters);
             return this.SetCommand(commandText);
         }
 
@@ -387,8 +415,8 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager SetSpCommand(string commandText)
         {
-            this.DbCommand.CommandText = commandText;
-            this.DbCommand.CommandType = CommandType.StoredProcedure;
+            this.commandText = commandText;
+            this.commandType = CommandType.StoredProcedure;
             return this;
         }
 
@@ -402,15 +430,8 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager SetSpCommand(string commandText, object parameters)
         {
-            this.parameters = this.CreateParameters(parameters);
+            this.parameters.AddDynamicParams(parameters);
             return this.SetSpCommand(commandText);
-        } 
-        #endregion
-
-        #region Private methods
-        private DynamicParameters CreateParameters(object param)
-        {
-            return new DynamicParameters(param);
         } 
         #endregion
     }
