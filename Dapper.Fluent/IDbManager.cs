@@ -18,19 +18,14 @@ namespace Dapper.Fluent
         IDbTransaction Transaction { get; }
 
         /// <summary>
-        /// Gets the db command.
-        /// </summary>
-        IDbCommand DbCommand { get; }
-
-        /// <summary>
         /// Gets the db connection.
         /// </summary>
         IDbConnection DbConnection { get; }
 
         /// <summary>
-        /// The parameters of the SQL statement or stored procedure. The default is an empty collection.
+        /// Gets the db command.
         /// </summary>
-        IEnumerable<KeyValuePair<string, object>> Parameters { get; }
+        IDbCommand DbCommand { get; }
 
         /// <summary>
         /// Starts a database transaction.
@@ -56,8 +51,9 @@ namespace Dapper.Fluent
         /// <summary>
         /// Executes a SQL statement against the connection and returns the result.
         /// </summary>
+        /// <typeparam name="T">The type of the returned result.</typeparam>
         /// <returns>A object returned by the query.</returns>
-        object Execute();
+        T ExecuteScalar<T>();
 
         /// <summary>
         /// Executes SQL statement on the database and returns a collection of objects.
@@ -156,6 +152,19 @@ namespace Dapper.Fluent
         /// <param name="param">The parameter value.</param>
         /// <returns>A <see cref="Dapper.Fluent.IDbManager"/> instance.</returns>
         IDbManager AddParameter(string name, object value);
+
+        /// <summary>
+        /// Adds a parameters to the parameter collection.
+        /// </summary>
+        /// <param name="name">The name of the parameter.</param>
+        /// <param name="param">The parameter value.</param>
+        
+        /// <summary>
+        /// Construct a parameter from object and adds a parameters to the parameter collection.
+        /// </summary>
+        /// <param name="value">Can be an anonymous type or a DynamicParameters bag.</param>
+        /// <returns>A <see cref="Dapper.Fluent.IDbManager"/> instance.</returns>
+        IDbManager AddParameters(object value);
         
         /// <summary>
         /// Sets SQL statement.
