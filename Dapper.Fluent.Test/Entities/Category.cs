@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Dapper.Fluent.Tests.Entities
 {
-    public class Category
+    public partial class Category
     {
         public int CategoryID { get; set; }
         public string CategoryName { get; set; }

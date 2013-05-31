@@ -23,11 +23,6 @@ namespace Dapper.Fluent
         IDbConnection DbConnection { get; }
 
         /// <summary>
-        /// Gets the db command.
-        /// </summary>
-        IDbCommand DbCommand { get; }
-
-        /// <summary>
         /// Starts a database transaction.
         /// </summary>
         void BeginTransaction();
@@ -49,20 +44,13 @@ namespace Dapper.Fluent
         void RollbackTransaction();
 
         /// <summary>
-        /// Executes a SQL statement against the connection and returns the result.
-        /// </summary>
-        /// <typeparam name="T">The type of the returned result.</typeparam>
-        /// <returns>A object returned by the query.</returns>
-        T ExecuteScalar<T>();
-
-        /// <summary>
         /// Executes SQL statement on the database and returns a collection of objects.
         /// </summary>
         /// <typeparam name="T">The type of the elements in the returned collection.</typeparam>
         /// <returns>
         /// A collection of objects returned by the query.
         /// </returns>
-        IEnumerable<T> ExecuteList<T>() where T : class;
+        IEnumerable<T> ExecuteList<T>();
         
         /// <summary>
         /// Executes SQL statement against the connection and returns the result.
@@ -71,7 +59,7 @@ namespace Dapper.Fluent
         /// <returns>
         /// An object returned by the query.
         /// </returns>
-        T ExecuteObject<T>() where T : class;
+        T ExecuteObject<T>();
 
         /// <summary>
         /// Executes SQL statement against the connection and builds multiple result sets.
@@ -106,16 +94,6 @@ namespace Dapper.Fluent
         /// </summary>
         /// <typeparam name="T1">The type of the first result set.</typeparam>
         /// <typeparam name="T2">The type of the second result set.</typeparam>
-        /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
-        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>        
-        /// <returns>The result object with related associations.</returns>
-        IEnumerable<TResult> ExecuteMultiMapping<T1, T2, TResult>(Func<T1, T2, TResult> map);
-
-        /// <summary>
-        /// Executes SQL statement against the connection and maps a single row to multiple objects.
-        /// </summary>
-        /// <typeparam name="T1">The type of the first result set.</typeparam>
-        /// <typeparam name="T2">The type of the second result set.</typeparam>
         /// <typeparam name="T3">The type of the third result set.</typeparam>
         /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
         /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
@@ -127,37 +105,36 @@ namespace Dapper.Fluent
         /// Executes SQL statement against the connection and maps a single row to multiple objects.
         /// </summary>
         /// <typeparam name="T1">The type of the first result set.</typeparam>
-        /// <typeparam name="T2">The type of the second result set.</typeparam>        
+        /// <typeparam name="T2">The type of the second result set.</typeparam>
         /// <typeparam name="T3">The type of the third result set.</typeparam>
+        /// <typeparam name="T4">The type of the fourth result set.</typeparam>
         /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
-        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>        
+        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
+        /// <param name="splitOn">The name of the field result set should split and read the second object from (default: id).</param>
         /// <returns>The result object with related associations.</returns>
-        IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> map);
+        IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> map, string splitOn);
+
+        /// <summary>
+        /// Executes SQL statement against the connection and maps a single row to multiple objects.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first result set.</typeparam>
+        /// <typeparam name="T2">The type of the second result set.</typeparam>
+        /// <typeparam name="T3">The type of the third result set.</typeparam>
+        /// <typeparam name="T4">The type of the fourth result set.</typeparam>
+        /// <typeparam name="T5">The type of the fourth result set.</typeparam>
+        /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
+        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
+        /// <param name="splitOn">The name of the field result set should split and read the second object from (default: id).</param>
+        /// <returns>
+        /// The result object with related associations.
+        /// </returns>
+        IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> map, string splitOn = "Id");
 
         /// <summary>
         /// Executes a SQL statement against the connection and returns the number of rows affected.
         /// </summary>
         /// <returns>The number of rows affected.</returns>
-        int ExecuteNonQuery();
-
-        /// <summary>
-        /// Executes SQL statement against the connection and builds a <see cref="IDataReader"/>.
-        /// </summary>
-        /// <returns>A <see cref="IDataReader"/> object.</returns>
-        IDataReader ExecuteReader();
-
-        /// <summary>
-        /// Executes SQL statement against the connection and builds a <see cref="IDataReader"/>  using one of the <see cref="CommandBehavior"/> values.
-        /// </summary>
-        /// <param name="behavior">One of the CommandBehavior values.</param>
-        /// <returns>A <see cref="IDataReader"/> object.</returns>
-        IDataReader ExecuteReader(CommandBehavior behavior);
-
-        /// <summary>
-        /// Executes SQL statement against the connection and builds a <see cref="System.Collections.IDictionary"/>.
-        /// </summary>
-        /// <returns>A <see cref="System.Collections.IDictionary"/> object.</returns>
-        IDictionary ExecuteDictionary();
+        int Execute();
 
         /// <summary>
         /// Adds a parameter to the parameter collection with the parameter name, the parameter value, the data type, the parameter direction, and the column length.
