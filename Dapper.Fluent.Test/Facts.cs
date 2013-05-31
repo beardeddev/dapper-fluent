@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Data;
 using System.Data.Common;
+using System.Collections;
 
 using Xunit;
 
 namespace Dapper.Fluent.Tests
 {
+    using Dapper.Fluent.Tests.Entities;
+
     public class Facts
     {
         private string providerName = "System.Data.SqlClient";
@@ -67,7 +70,7 @@ namespace Dapper.Fluent.Tests
         public void Test_Sql_Command_Text_Should_Be_Set()
         {
             IDbManager dbManager = GetDbManager();
-            dbManager.SetCommand("SELECT * FROM [Northwind].[dbo].[Categories]");
+            dbManager.SetCommand("SELECT * FROM [dbo].[Categories]");
             Assert.NotEmpty(dbManager.DbCommand.CommandText);
         }
 
@@ -107,7 +110,7 @@ namespace Dapper.Fluent.Tests
         public void Test_Should_Execute_Object()
         {
             IDbManager dbManager = GetDbManager();
-            Category result = dbManager.SetCommand("SELECT * FROM [Northwind].[dbo].[Categories] WHERE [CategoryID] = @CategoryID", new { @CategoryID = 1 })
+            Category result = dbManager.SetCommand("SELECT * FROM [dbo].[Categories] WHERE [CategoryID] = @CategoryID", new { @CategoryID = 1 })
                 .ExecuteObject<Category>();
 
             Assert.NotNull(result);
@@ -118,7 +121,7 @@ namespace Dapper.Fluent.Tests
         public void Test_Should_Execute_Non_Query()
         {
             IDbManager dbManager = GetDbManager();
-            int result = dbManager.SetCommand("SELECT * FROM [Northwind].[dbo].[Categories]")
+            int result = dbManager.SetCommand("SELECT * FROM [dbo].[Categories]")
                 .ExecuteNonQuery();
 
             Assert.Equal(-1, result);
@@ -128,7 +131,7 @@ namespace Dapper.Fluent.Tests
         public void Test_Should_Execute_Reader()
         {
             IDbManager dbManager = GetDbManager();
-            using (IDataReader dr = dbManager.SetCommand("SELECT * FROM [Northwind].[dbo].[Categories]")
+            using (IDataReader dr = dbManager.SetCommand("SELECT * FROM [dbo].[Categories]")
                                         .ExecuteReader())
             {
                 Assert.NotNull(dr);
@@ -140,7 +143,7 @@ namespace Dapper.Fluent.Tests
         public void Test_Should_Execute_Scalar()
         {
             IDbManager dbManager = GetDbManager();
-            int result = dbManager.SetCommand("SELECT COUNT(CategoryID) FROM [Northwind].[dbo].[Categories]")
+            int result = dbManager.SetCommand("SELECT COUNT(CategoryID) FROM [dbo].[Categories]")
                 .ExecuteScalar<int>();
             
             Assert.Equal(8, result);
@@ -150,7 +153,7 @@ namespace Dapper.Fluent.Tests
         public void Test_Should_Execute_Multiple()
         {
             IDbManager dbManager = GetDbManager();
-            var result = dbManager.SetCommand("SELECT * FROM [Northwind].[dbo].[Categories] SELECT COUNT(CategoryID) FROM [Northwind].[dbo].[Categories]")
+            var result = dbManager.SetCommand("SELECT * FROM [dbo].[Categories] SELECT COUNT(CategoryID) FROM [dbo].[Categories]")
                 .ExecuteMultiple<Category, int>();
 
             Assert.NotEmpty(result.Item1);
@@ -164,9 +167,9 @@ namespace Dapper.Fluent.Tests
         public void Test_Should_Execute_Multiple2()
         {
             IDbManager dbManager = GetDbManager();
-            var result = dbManager.SetCommand(@"SELECT * FROM [Northwind].[dbo].[Categories] WHERE [CategoryID] = @CategoryID 
-                                                SELECT * FROM [Northwind].[dbo].[Categories] 
-                                                SELECT COUNT(CategoryID) FROM [Northwind].[dbo].[Categories]")
+            var result = dbManager.SetCommand(@"SELECT * FROM [dbo].[Categories] WHERE [CategoryID] = @CategoryID 
+                                                SELECT * FROM [dbo].[Categories] 
+                                                SELECT COUNT(CategoryID) FROM [dbo].[Categories]")
                 .AddParameter("@CategoryID", 1)
                 .ExecuteMultiple<Category, Category, int>();
 
@@ -177,6 +180,52 @@ namespace Dapper.Fluent.Tests
             Assert.Equal(1, result.Item1.First().CategoryID);
             Assert.Equal(8, result.Item2.Count());
             Assert.Equal(8, result.Item3.First());
+        }
+
+        [Fact]
+        public void Test_Should_Execute_Dictionary()
+        {
+            IDbManager dbManager = GetDbManager();
+            IDictionary result = dbManager.SetCommand("SELECT * FROM [dbo].[Categories] WHERE [CategoryID] = @CategoryID ")
+                .AddParameter("@CategoryID", 1)
+                .ExecuteDictionary();
+
+            Assert.NotNull(result);
+            Assert.Contains("CategoryID", result.Keys.Cast<string>());
+            Assert.Contains("CategoryName", result.Keys.Cast<string>());
+            Assert.Contains("Description", result.Keys.Cast<string>());
+            Assert.Contains("Picture", result.Keys.Cast<string>());
+        }
+
+        [Fact]
+        public void Test_Should_Execute_MultiMapping()
+        {
+            IDbManager dbManager = GetDbManager();
+            IEnumerable<Product> result = dbManager.SetCommand(@"SELECT *
+                          FROM [dbo].[Products] p
+	                        INNER JOIN [dbo].[Categories] c ON p.CategoryID = c.CategoryID")
+            .ExecuteMultiMapping<Product, Category, Product>((product, category) => { product.Category = category; return product; }, "CategoryID");
+
+            Assert.NotEmpty(result);
+            Assert.NotNull(result.First().Category);
+            Assert.Equal(result.First().CategoryId, result.First().Category.CategoryID);
+        }
+
+        [Fact]
+        public void Test_Should_Execute_MultiMapping2()
+        {
+            IDbManager dbManager = GetDbManager();
+            IEnumerable<Product> result = dbManager.SetCommand(@"SELECT *
+                          FROM [dbo].[Products] p
+	                        INNER JOIN [dbo].[Categories] c ON p.CategoryID = c.CategoryID
+	                        INNER JOIN [dbo].[Suppliers] s ON p.SupplierID = s.SupplierID")
+            .ExecuteMultiMapping<Product, Category, Supplier, Product>((product, category, supplier) => { product.Category = category; product.Supplier = supplier; return product; }, "CategoryID, SupplierID");
+
+            Assert.NotEmpty(result);
+            Assert.NotNull(result.First().Category);
+            Assert.NotNull(result.First().Supplier);
+            Assert.Equal(result.First().CategoryId, result.First().Category.CategoryID);
+            Assert.Equal(result.First().SupplierId, result.First().Supplier.SupplierId);
         }
     }
 }

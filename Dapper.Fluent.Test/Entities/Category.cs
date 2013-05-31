@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Dapper.Fluent.Tests
+namespace Dapper.Fluent.Tests.Entities
 {
     public class Category
     {
