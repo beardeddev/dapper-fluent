@@ -40,5 +40,7 @@ namespace Dapper.Fluent.Tests.Entities
         public Employee Employee { get; set; }
 
         public Shipper Shipper { get; set; }
+
+        public OrderDetails Details { get; set; }
     }
 }

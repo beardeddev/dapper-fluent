@@ -121,7 +121,7 @@ namespace Dapper.Fluent
         /// <typeparam name="T2">The type of the second result set.</typeparam>
         /// <typeparam name="T3">The type of the third result set.</typeparam>
         /// <typeparam name="T4">The type of the fourth result set.</typeparam>
-        /// <typeparam name="T5">The type of the fourth result set.</typeparam>
+        /// <typeparam name="T5">The type of the fifth result set.</typeparam>
         /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
         /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
         /// <param name="splitOn">The name of the field result set should split and read the second object from (default: id).</param>
@@ -129,6 +129,21 @@ namespace Dapper.Fluent
         /// The result object with related associations.
         /// </returns>
         IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> map, string splitOn = "Id");
+
+        /// <summary>
+        /// Executes SQL statement against the connection and maps a single row to multiple objects.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first result set.</typeparam>
+        /// <typeparam name="T2">The type of the second result set.</typeparam>
+        /// <typeparam name="T3">The type of the third result set.</typeparam>
+        /// <typeparam name="T4">The type of the fourth result set.</typeparam>
+        /// <typeparam name="T5">The type of the fifth result set.</typeparam>
+        /// <typeparam name="T6">The type of the sixth result set.</typeparam>
+        /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
+        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
+        /// <param name="splitOn">The name of the field result set should split and read the second object from (default: id).</param>
+        /// <returns>The result object with related associations.</returns>
+        IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> map, string splitOn);
 
         /// <summary>
         /// Executes a SQL statement against the connection and returns the number of rows affected.

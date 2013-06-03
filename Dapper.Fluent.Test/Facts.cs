@@ -310,5 +310,43 @@ namespace Dapper.Fluent.Tests
                 Assert.Equal(result.First().Employee.ReportsTo, result.First().Employee.Boss.EmployeeId);
             }
         }
+
+        [Fact]
+        public void Test_Should_Execute_MultiMapping5()
+        {
+            using (IDbManager dbManager = GetDbManager())
+            {
+                IEnumerable<Order> result = dbManager.SetCommand(@"SELECT *
+                      FROM [dbo].[Orders] o
+                      INNER JOIN [dbo].[Customers] c ON o.CustomerID = c.CustomerID
+                      INNER JOIN [dbo].[Employees] e ON o.EmployeeID = e.EmployeeID
+                      INNER JOIN [dbo].[Shippers] s ON o.ShipVia = s.ShipperID
+                      LEFT JOIN [dbo].[Employees] e2 ON e.ReportsTo = e2.EmployeeID
+                      INNER JOIN [dbo].[Order Details] od ON o.OrderID = od.OrderID")
+                .ExecuteMultiMapping<Order, Customer, Employee, Shipper, Employee, OrderDetails, Order>(
+                    (order, customer, employee, shipper, boss, details) =>
+                    {
+                        order.Customer = customer;
+                        order.Employee = employee;
+                        order.Shipper = shipper;
+                        order.Employee.Boss = boss;
+                        order.Details = details;
+                        return order;
+                    },
+                    "CustomerID, EmployeeID, ShipperID, EmployeeID, OrderID"
+                );
+
+                Assert.NotEmpty(result);
+                Assert.NotNull(result.First().Details);
+                Assert.NotNull(result.First().Customer);
+                Assert.NotNull(result.First().Employee);
+                Assert.NotNull(result.First().Shipper);
+                Assert.NotNull(result.First().Employee.Boss);
+                Assert.Equal(result.First().CustomerId, result.First().Customer.CustomerId);
+                Assert.Equal(result.First().EmployeeId, result.First().Employee.EmployeeId);
+                Assert.Equal(result.First().ShipVia, result.First().Shipper.ShipperId);
+                Assert.Equal(result.First().Employee.ReportsTo, result.First().Employee.Boss.EmployeeId);
+            }
+        }
     }
 }
