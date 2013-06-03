@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Fluent", "Dapper.Fluent\Dapper.Fluent.csproj", "{406E695F-B911-444A-8C51-6BD6E6AF77A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Fluent", "Dapper.Fluent\Dapper.Fluent.csproj", "{972D7E05-F949-42E2-9EE1-C8E631A1AC2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dapper.Fluent.Tests", "Dapper.Fluent.Test\Dapper.Fluent.Tests.csproj", "{B1D46572-91EC-4B56-A7B1-37ABCBD7D57F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +11,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{406E695F-B911-444A-8C51-6BD6E6AF77A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{406E695F-B911-444A-8C51-6BD6E6AF77A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{406E695F-B911-444A-8C51-6BD6E6AF77A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{406E695F-B911-444A-8C51-6BD6E6AF77A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{972D7E05-F949-42E2-9EE1-C8E631A1AC2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{972D7E05-F949-42E2-9EE1-C8E631A1AC2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{972D7E05-F949-42E2-9EE1-C8E631A1AC2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{972D7E05-F949-42E2-9EE1-C8E631A1AC2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1D46572-91EC-4B56-A7B1-37ABCBD7D57F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1D46572-91EC-4B56-A7B1-37ABCBD7D57F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1D46572-91EC-4B56-A7B1-37ABCBD7D57F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1D46572-91EC-4B56-A7B1-37ABCBD7D57F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

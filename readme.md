@@ -66,5 +66,4 @@ dbManager.SetCommand("SELECT * FROM [dbo].[Posts] WHERE [PublishedOn] BETWEEN @S
 ```
 
 ### TODO:
-- Implement unit tests
 - Add example of using IOC, best practices
