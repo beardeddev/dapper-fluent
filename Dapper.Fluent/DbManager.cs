@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Data;
 using System.Collections;
+using System.Data.Common;
 
 namespace Dapper.Fluent
 {
@@ -92,39 +93,6 @@ namespace Dapper.Fluent
         /// Gets the connection.
         /// </summary>
         public IDbConnection DbConnection { get; private set; }
-
-        /// <summary>
-        /// Gets the db command.
-        /// </summary>
-        public IDbCommand DbCommand 
-        {
-            get
-            {
-                using (IDbCommand dbCommand = this.DbConnection.CreateCommand())
-                {
-                    if (string.IsNullOrEmpty(this.commandText))
-                    {
-                        throw new ArgumentNullException("commandText");
-                    }
-
-                    dbCommand.CommandText = this.commandText;
-                    dbCommand.CommandType = this.commandType;
-
-                    if (this.commandTimeout.HasValue)
-                        dbCommand.CommandTimeout = this.commandTimeout.Value;
-
-                    if (this.Transaction != null)
-                        dbCommand.Transaction = this.Transaction;
-
-                    foreach (IDbDataParameter param in this.parameters.GetAttachedParams(dbCommand))
-                        dbCommand.Parameters.Add(param);
-
-                    return dbCommand;
-                }
-            }
-        }
-
-        
         #endregion
 
         #region IDisposable members
@@ -170,7 +138,6 @@ namespace Dapper.Fluent
         #endregion
 
         #region Query execution methods
-
         /// <summary>
         /// Executes SQL statement on the database and returns a collection of objects.
         /// </summary>
@@ -178,7 +145,7 @@ namespace Dapper.Fluent
         /// <returns>
         /// A collection of objects returned by the query.
         /// </returns>
-        public IEnumerable<T> ExecuteList<T>() where T : class
+        public IEnumerable<T> ExecuteList<T>()
         {
             return this.DbConnection.Query<T>(this.commandText, this.parameters, this.Transaction, this.buffered, this.commandTimeout, this.commandType);
         }
@@ -190,7 +157,7 @@ namespace Dapper.Fluent
         /// <returns>
         /// An object returned by the query.
         /// </returns>
-        public T ExecuteObject<T>() where T : class
+        public T ExecuteObject<T>()
         {
             return this.DbConnection.Query<T>(this.commandText, this.parameters, this.Transaction, this.buffered, this.commandTimeout, this.commandType).FirstOrDefault();
         }
@@ -236,74 +203,84 @@ namespace Dapper.Fluent
         }
 
         /// <summary>
+        /// Executes SQL statement against the connection and maps a single row to multiple objects.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first result set.</typeparam>
+        /// <typeparam name="T2">The type of the second result set.</typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
+        /// <param name="splitOn">The name of the field result set should split and read the second object from (default: id).</param>
+        /// <returns>
+        /// The result object with related associations.
+        /// </returns>
+        public virtual IEnumerable<TResult> ExecuteMultiMapping<T1, T2, TResult>(Func<T1, T2, TResult> map, string splitOn = "Id")
+        {
+            return this.DbConnection.Query<T1, T2, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
+        }
+
+        /// <summary>
+        /// Executes SQL statement against the connection and maps a single row to multiple objects.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first result set.</typeparam>
+        /// <typeparam name="T2">The type of the second result set.</typeparam>
+        /// <typeparam name="T3">The type of the third result set.</typeparam>
+        /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
+        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
+        /// <param name="splitOn">The name of the field result set should split and read the second object from (default: id).</param>
+        /// <returns>
+        /// The result object with related associations.
+        /// </returns>
+        public virtual IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> map, string splitOn = "Id")
+        {
+            return this.DbConnection.Query<T1, T2, T3, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
+        }
+
+        /// <summary>
+        /// Executes SQL statement against the connection and maps a single row to multiple objects.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first result set.</typeparam>
+        /// <typeparam name="T2">The type of the second result set.</typeparam>
+        /// <typeparam name="T3">The type of the third result set.</typeparam>
+        /// <typeparam name="T4">The type of the fourth result set.</typeparam>
+        /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
+        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
+        /// <param name="splitOn">The name of the field result set should split and read the second object from (default: id).</param>
+        /// <returns>
+        /// The result object with related associations.
+        /// </returns>
+        public virtual IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> map, string splitOn = "Id")
+        {
+            return this.DbConnection.Query<T1, T2, T3, T4, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
+        }
+
+        /// <summary>
+        /// Executes SQL statement against the connection and maps a single row to multiple objects.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first result set.</typeparam>
+        /// <typeparam name="T2">The type of the second result set.</typeparam>
+        /// <typeparam name="T3">The type of the third result set.</typeparam>
+        /// <typeparam name="T4">The type of the fourth result set.</typeparam>
+        /// <typeparam name="T5">The type of the fourth result set.</typeparam>
+        /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
+        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
+        /// <param name="splitOn">The name of the field result set should split and read the second object from (default: id).</param>
+        /// <returns>
+        /// The result object with related associations.
+        /// </returns>
+        public virtual IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> map, string splitOn = "Id")
+        {
+            return this.DbConnection.Query<T1, T2, T3, T4, T5, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
+        }
+
+        /// <summary>
         /// Executes a SQL statement against the connection and returns the number of rows affected.
         /// </summary>
         /// <returns>
         /// The number of rows affected.
         /// </returns>
-        public int ExecuteNonQuery()
+        public virtual int Execute()
         {
-            return this.DbCommand.ExecuteNonQuery();
-        }
-
-        /// <summary>
-        /// Executes a SQL statement against the connection and returns the result.
-        /// </summary>
-        /// <typeparam name="T">The type of the returned result.</typeparam>
-        /// <returns>
-        /// A object returned by the query.
-        /// </returns>
-        public T ExecuteScalar<T>()
-        {
-            return (T)this.DbCommand.ExecuteScalar();
-        }
-
-        /// <summary>
-        /// Executes SQL statement against the connection and builds a <see cref="IDataReader"/>.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="IDataReader"/> object.
-        /// </returns>
-        public IDataReader ExecuteReader()
-        {
-            return this.ExecuteReader(CommandBehavior.Default);
-        }
-
-        /// <summary>
-        /// Executes SQL statement against the connection and builds a <see cref="IDataReader"/>  using one of the <see cref="CommandBehavior"/> values.
-        /// </summary>
-        /// <param name="behavior">One of the CommandBehavior values.</param>
-        /// <returns>
-        /// A <see cref="IDataReader"/> object.
-        /// </returns>
-        public IDataReader ExecuteReader(CommandBehavior behavior)
-        {
-            return this.DbCommand.ExecuteReader(behavior);
-        }
-
-        /// <summary>
-        /// Executes SQL statement against the connection and builds a <see cref="System.Collections.IDictionary"/>.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="System.Collections.IDictionary"/> object.
-        /// </returns>
-        public virtual IDictionary ExecuteDictionary()
-        {
-            IDictionary result = new Dictionary<string, object>();
-
-            using (IDataReader dr = this.ExecuteReader())
-            {
-                if (dr.Read())
-                {
-                    foreach (DataRow row in dr.GetSchemaTable().Rows)
-                    {
-                        string key = row["ColumnName"].ToString();
-                        result.Add(key, dr[key]);
-                    }
-                }
-            }
-
-            return result;
+            return this.DbConnection.Execute(this.commandText, this.parameters, this.Transaction, this.commandTimeout, this.commandType);
         }
         #endregion
 

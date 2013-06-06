@@ -5,8 +5,7 @@ Dapper.Fluent is a small and easy library that supports fluent API for query con
 ### Core Features
 
 - Fluent interface, an object oriented API that aims to provide readable code.
-- Full control over database connection, commands, parameters, transaction with one context.
-- IDataReader, IDictionary, NonQuery, POCO, POCO collections and multiple result sets mapping.
+- Using full power of [Dapper.Net](https://github.com/SamSaffron/dapper-dot-net) in elegant way.
 - Implementation of API close to [BLToolkit](http://bltoolkit.net) ORM API.
 
 ### Overview
@@ -30,20 +29,22 @@ void RollbackTransaction();
 ```
 **Querying**
 ```csharp
+int Execute();
 T ExecuteObject<T>() where T : class;
 IEnumerable<T> ExecuteList<T>() where T : class;
 Tuple<IEnumerable<T1>, IEnumerable<T2>, IEnumerable<T3>> ExecuteMultiple<T1, T2, T3>();
 Tuple<IEnumerable<T1>, IEnumerable<T2>> ExecuteMultiple<T1, T2>();
-object Execute();
-int ExecuteNonQuery();
-IDataReader ExecuteReader();
-IDataReader ExecuteReader(CommandBehavior behavior);
-IDictionary ExecuteDictionary();
+IEnumerable<TResult> ExecuteMultiMapping<T1, T2, TResult>(Func<T1, T2, TResult> map, string splitOn);
+IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> map, string splitOn);
+IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> map, string splitOn);
+IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> map, string splitOn = "Id");
+
 ```
 
 ### Examples usage
 
 **Setting up fluent API context:**
+
 ```csharp
 DbProviderFactory factory = DbProviderFactories.GetFactory(providerName);
 IDbConnection connection = factory.CreateConnection();
@@ -66,4 +67,6 @@ dbManager.SetCommand("SELECT * FROM [dbo].[Posts] WHERE [PublishedOn] BETWEEN @S
 ```
 
 ### TODO:
+- Implement output parameters handling
 - Add example of using IOC, best practices
+
