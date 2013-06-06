@@ -90,7 +90,7 @@ namespace Dapper.Fluent.Tests
             using (IDbManager dbManager = GetDbManager())
             {
                 IEnumerable<CustOrderHist> result = dbManager.SetSpCommand("CustOrderHist")
-                    .AddParameter("@CustomerID", "ALFKI")
+                    .SetParameter("@CustomerID", "ALFKI")
                     .ExecuteList<CustOrderHist>();
 
                 Assert.NotEmpty(result);
@@ -103,7 +103,7 @@ namespace Dapper.Fluent.Tests
             using (IDbManager dbManager = GetDbManager())
             {
                 IEnumerable<EmployeeSalesByCountryResult> result = dbManager.SetSpCommand("Employee Sales by Country")
-                    .AddParameters(new { 
+                    .SetParameters(new { 
                         @Beginning_Date = new DateTime(1996, 07, 04), @Ending_Date = new DateTime(1996, 07, 16) 
                     }).ExecuteList<EmployeeSalesByCountryResult>();
 
@@ -131,7 +131,7 @@ namespace Dapper.Fluent.Tests
             {
                 IEnumerable<EmployeeSalesByCountryResult> result = dbManager.SetSpCommand("Employee Sales by Country", new { 
                         @Beginning_Date = new DateTime(1996, 07, 04) 
-                    }).AddParameter("@Ending_Date", new DateTime(1996, 07, 16))
+                    }).SetParameter("@Ending_Date", new DateTime(1996, 07, 16))
                     .ExecuteList<EmployeeSalesByCountryResult>();
 
                 Assert.NotEmpty(result);
@@ -163,6 +163,20 @@ namespace Dapper.Fluent.Tests
         }
 
         [Fact]
+        public void Test_Should_Pass_Output_Parameter()
+        {
+            using (IDbManager dbManager = GetDbManager())
+            {
+                IEnumerable<Category> result = dbManager.SetCommand("SET NOCOUNT ON SELECT * FROM [dbo].[Categories] SELECT @TotalCount = COUNT(CategoryID) FROM [dbo].[Categories]")
+                    .SetOutputParameter("@TotalCount", DbType.Int32)
+                    .ExecuteList<Category>();
+
+                Assert.NotEmpty(result);
+                Assert.Equal(8, dbManager.GetParameterValue<int>("@TotalCount"));
+            }
+        }
+
+        [Fact]
         public void Test_Should_Execute_Multiple()
         {
             using (IDbManager dbManager = GetDbManager())
@@ -186,7 +200,7 @@ namespace Dapper.Fluent.Tests
                 var result = dbManager.SetCommand(@"SELECT * FROM [dbo].[Categories] WHERE [CategoryID] = @CategoryID 
                                                 SELECT * FROM [dbo].[Categories] 
                                                 SELECT COUNT(CategoryID) FROM [dbo].[Categories]")
-                    .AddParameter("@CategoryID", 1)
+                    .SetParameter("@CategoryID", 1)
                     .ExecuteMultiple<Category, Category, int>();
 
                 Assert.NotEmpty(result.Item1);
@@ -207,7 +221,7 @@ namespace Dapper.Fluent.Tests
                 IEnumerable<Product> result = dbManager.SetCommand(@"SELECT *
                           FROM [dbo].[Products] p
 	                        INNER JOIN [dbo].[Categories] c ON p.CategoryID = c.CategoryID")
-                .ExecuteMultiMapping<Product, Category, Product>(
+                .ExecuteMapping<Product, Category, Product>(
                     (product, category) => { 
                         product.Category = category; 
                         return product; 
@@ -230,7 +244,7 @@ namespace Dapper.Fluent.Tests
                           FROM [dbo].[Products] p
 	                        INNER JOIN [dbo].[Categories] c ON p.CategoryID = c.CategoryID
 	                        INNER JOIN [dbo].[Suppliers] s ON p.SupplierID = s.SupplierID")
-                .ExecuteMultiMapping<Product, Category, Supplier, Product>(
+                .ExecuteMapping<Product, Category, Supplier, Product>(
                     (product, category, supplier) => { 
                         product.Category = category; 
                         product.Supplier = supplier; 
@@ -257,7 +271,7 @@ namespace Dapper.Fluent.Tests
                       INNER JOIN [dbo].[Customers] c ON o.CustomerID = c.CustomerID
                       INNER JOIN [dbo].[Employees] e ON o.EmployeeID = e.EmployeeID
                       INNER JOIN [dbo].[Shippers] s ON o.ShipVia = s.ShipperID")
-                .ExecuteMultiMapping<Order, Customer, Employee, Shipper, Order>(
+                .ExecuteMapping<Order, Customer, Employee, Shipper, Order>(
                     (order, customer, employee, shipper) => { 
                         order.Customer = customer; 
                         order.Employee = employee; 
@@ -288,7 +302,7 @@ namespace Dapper.Fluent.Tests
                       INNER JOIN [dbo].[Employees] e ON o.EmployeeID = e.EmployeeID
                       INNER JOIN [dbo].[Shippers] s ON o.ShipVia = s.ShipperID
                       LEFT JOIN [dbo].[Employees] e2 ON e.ReportsTo = e2.EmployeeID")
-                .ExecuteMultiMapping<Order, Customer, Employee, Shipper, Employee, Order>(
+                .ExecuteMapping<Order, Customer, Employee, Shipper, Employee, Order>(
                     (order, customer, employee, shipper, boss) => { 
                         order.Customer = customer; 
                         order.Employee = employee; 
@@ -300,6 +314,44 @@ namespace Dapper.Fluent.Tests
                 );
 
                 Assert.NotEmpty(result);
+                Assert.NotNull(result.First().Customer);
+                Assert.NotNull(result.First().Employee);
+                Assert.NotNull(result.First().Shipper);
+                Assert.NotNull(result.First().Employee.Boss);
+                Assert.Equal(result.First().CustomerId, result.First().Customer.CustomerId);
+                Assert.Equal(result.First().EmployeeId, result.First().Employee.EmployeeId);
+                Assert.Equal(result.First().ShipVia, result.First().Shipper.ShipperId);
+                Assert.Equal(result.First().Employee.ReportsTo, result.First().Employee.Boss.EmployeeId);
+            }
+        }
+
+        [Fact]
+        public void Test_Should_Execute_MultiMapping5()
+        {
+            using (IDbManager dbManager = GetDbManager())
+            {
+                IEnumerable<Order> result = dbManager.SetCommand(@"SELECT *
+                      FROM [dbo].[Orders] o
+                      INNER JOIN [dbo].[Customers] c ON o.CustomerID = c.CustomerID
+                      INNER JOIN [dbo].[Employees] e ON o.EmployeeID = e.EmployeeID
+                      INNER JOIN [dbo].[Shippers] s ON o.ShipVia = s.ShipperID
+                      LEFT JOIN [dbo].[Employees] e2 ON e.ReportsTo = e2.EmployeeID
+                      INNER JOIN [dbo].[Order Details] od ON o.OrderID = od.OrderID")
+                .ExecuteMapping<Order, Customer, Employee, Shipper, Employee, OrderDetails, Order>(
+                    (order, customer, employee, shipper, boss, details) =>
+                    {
+                        order.Customer = customer;
+                        order.Employee = employee;
+                        order.Shipper = shipper;
+                        order.Employee.Boss = boss;
+                        order.Details = details;
+                        return order;
+                    },
+                    "CustomerID, EmployeeID, ShipperID, EmployeeID, OrderID"
+                );
+
+                Assert.NotEmpty(result);
+                Assert.NotNull(result.First().Details);
                 Assert.NotNull(result.First().Customer);
                 Assert.NotNull(result.First().Employee);
                 Assert.NotNull(result.First().Shipper);

@@ -95,6 +95,19 @@ namespace Dapper.Fluent
         public IDbConnection DbConnection { get; private set; }
         #endregion
 
+        #region Public members
+        /// <summary>
+        /// Gets the parameter value.
+        /// </summary>
+        /// <typeparam name="T">The type of parameter value.</typeparam>
+        /// <param name="name">The parameter name.</param>
+        /// <returns>The value of parameter.</returns>
+        public T GetParameterValue<T>(string name)
+        {
+            return this.parameters.Get<T>(name);
+        }
+        #endregion
+
         #region IDisposable members
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -213,7 +226,7 @@ namespace Dapper.Fluent
         /// <returns>
         /// The result object with related associations.
         /// </returns>
-        public virtual IEnumerable<TResult> ExecuteMultiMapping<T1, T2, TResult>(Func<T1, T2, TResult> map, string splitOn = "Id")
+        public virtual IEnumerable<TResult> ExecuteMapping<T1, T2, TResult>(Func<T1, T2, TResult> map, string splitOn = "Id")
         {
             return this.DbConnection.Query<T1, T2, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
         }
@@ -230,7 +243,7 @@ namespace Dapper.Fluent
         /// <returns>
         /// The result object with related associations.
         /// </returns>
-        public virtual IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> map, string splitOn = "Id")
+        public virtual IEnumerable<TResult> ExecuteMapping<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> map, string splitOn = "Id")
         {
             return this.DbConnection.Query<T1, T2, T3, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
         }
@@ -248,7 +261,7 @@ namespace Dapper.Fluent
         /// <returns>
         /// The result object with related associations.
         /// </returns>
-        public virtual IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> map, string splitOn = "Id")
+        public virtual IEnumerable<TResult> ExecuteMapping<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> map, string splitOn = "Id")
         {
             return this.DbConnection.Query<T1, T2, T3, T4, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
         }
@@ -267,10 +280,30 @@ namespace Dapper.Fluent
         /// <returns>
         /// The result object with related associations.
         /// </returns>
-        public virtual IEnumerable<TResult> ExecuteMultiMapping<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> map, string splitOn = "Id")
+        public virtual IEnumerable<TResult> ExecuteMapping<T1, T2, T3, T4, T5, TResult>(Func<T1, T2, T3, T4, T5, TResult> map, string splitOn = "Id")
         {
             return this.DbConnection.Query<T1, T2, T3, T4, T5, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
         }
+
+        /// <summary>
+        /// Executes SQL statement against the connection and maps a single row to multiple objects.
+        /// </summary>
+        /// <typeparam name="T1">The type of the first result set.</typeparam>
+        /// <typeparam name="T2">The type of the second result set.</typeparam>
+        /// <typeparam name="T3">The type of the third result set.</typeparam>
+        /// <typeparam name="T4">The type of the fourth result set.</typeparam>
+        /// <typeparam name="T5">The type of the fifth result set.</typeparam>
+        /// <typeparam name="T6">The type of the sixth result set.</typeparam>
+        /// <typeparam name="TResult">The type of the result set elements to be the returned.</typeparam>
+        /// <param name="map">The mapping function that encapsulates a method that has three parameters and returns a value of the type specified by the TResult parameter..</param>
+        /// <param name="splitOn">The name of the field result set should split and read the second object from (default: id).</param>
+        /// <returns>
+        /// The result object with related associations.
+        /// </returns>
+        public virtual IEnumerable<TResult> ExecuteMapping<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> map, string splitOn = "Id")
+        {
+            return this.DbConnection.Query<T1, T2, T3, T4, T5, T6, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
+        }        
 
         /// <summary>
         /// Executes a SQL statement against the connection and returns the number of rows affected.
@@ -296,7 +329,7 @@ namespace Dapper.Fluent
         /// <returns>
         /// A <see cref="Dapper.Fluent.IDbManager"/> instance.
         /// </returns>
-        public IDbManager AddParameter(string name, object value, DbType dbType, ParameterDirection direction, int? size)
+        public IDbManager SetParameter(string name, object value, DbType dbType, ParameterDirection direction, int? size)
         {
             this.parameters.Add(name, value, dbType, direction, size);
             return this;
@@ -312,9 +345,9 @@ namespace Dapper.Fluent
         /// <returns>
         /// A <see cref="Dapper.Fluent.IDbManager"/> instance.
         /// </returns>
-        public IDbManager AddParameter(string name, object value, DbType dbType, ParameterDirection direction)
+        public IDbManager SetParameter(string name, object value, DbType dbType, ParameterDirection direction)
         {
-            return this.AddParameter(name, value, dbType, direction, null);
+            return this.SetParameter(name, value, dbType, direction, null);
         }
 
         /// <summary>
@@ -326,9 +359,9 @@ namespace Dapper.Fluent
         /// <returns>
         /// A <see cref="Dapper.Fluent.IDbManager"/> instance.
         /// </returns>
-        public IDbManager AddParameter(string name, DbType dbType, ParameterDirection direction)
+        public IDbManager SetParameter(string name, DbType dbType, ParameterDirection direction)
         {
-            return this.AddParameter(name, null, dbType, direction, null);
+            return this.SetParameter(name, null, dbType, direction, null);
         }
 
         /// <summary>
@@ -339,9 +372,36 @@ namespace Dapper.Fluent
         /// <returns>
         /// A <see cref="Dapper.Fluent.IDbManager"/> instance.
         /// </returns>
-        public IDbManager AddParameter(string name, object value)
+        public IDbManager SetParameter(string name, object value)
         {
-            return this.AddParameter(name, value, SqlMapper.LookupDbType(value.GetType(), name), ParameterDirection.Input, null);
+            return this.SetParameter(name, value, SqlMapper.LookupDbType(value.GetType(), name), ParameterDirection.Input, null);
+        }
+
+        /// <summary>
+        /// Adds a parameter to the parameter collection with the parameter name, the parameter value, the data type, and marks it as output parameter.
+        /// </summary>
+        /// <param name="name">The name of the parameter.</param>
+        /// <param name="value">The parameter value.</param>
+        /// <param name="dbType">One of the <see cref="System.Data.DbType"/> values.</param>
+        /// <returns>
+        /// A <see cref="Dapper.Fluent.IDbManager"/> instance.
+        /// </returns>
+        public IDbManager SetOutputParameter(string name, object value, DbType dbType)
+        {
+            return this.SetParameter(name, value, dbType, ParameterDirection.Output);
+        }
+
+        /// <summary>
+        /// Adds a parameter to the parameter collection with the parameter name, the data type, and marks it as output parameter.
+        /// </summary>
+        /// <param name="name">The name of the parameter.</param>
+        /// <param name="dbType">One of the <see cref="System.Data.DbType"/> values.</param>
+        /// <returns>
+        /// A <see cref="Dapper.Fluent.IDbManager"/> instance.
+        /// </returns>
+        public IDbManager SetOutputParameter(string name, DbType dbType)
+        {
+            return this.SetParameter(name, null, dbType, ParameterDirection.Output);
         }
 
         /// <summary>
@@ -349,7 +409,7 @@ namespace Dapper.Fluent
         /// </summary>
         /// <param name="value">Can be an anonymous type or a DynamicParameters bag.</param>
         /// <returns>A <see cref="Dapper.Fluent.IDbManager"/> instance.</returns>
-        public IDbManager AddParameters(object value)
+        public IDbManager SetParameters(object value)
         {
             this.parameters.AddDynamicParams(value);
             return this;

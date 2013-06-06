@@ -68,6 +68,7 @@
     <Compile Include="Entities\Employee.cs" />
     <Compile Include="Entities\EmployeeSalesByCountryResult.cs" />
     <Compile Include="Entities\Order.cs" />
+    <Compile Include="Entities\OrderDetails.cs" />
     <Compile Include="Entities\Shipper.cs" />
     <Compile Include="Facts.cs" />
     <Compile Include="Entities\Product.cs" />
