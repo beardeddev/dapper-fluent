@@ -168,7 +168,7 @@ namespace Dapper.Fluent.Tests
             using (IDbManager dbManager = GetDbManager())
             {
                 IEnumerable<Category> result = dbManager.SetCommand("SET NOCOUNT ON SELECT * FROM [dbo].[Categories] SELECT @TotalCount = COUNT(CategoryID) FROM [dbo].[Categories]")
-                    .SetOutputParameter("@TotalCount", DbType.Int32)
+                    .SetParameter("@TotalCount", DbType.Int32, ParameterDirection.Output)
                     .ExecuteList<Category>();
 
                 Assert.NotEmpty(result);
