@@ -378,33 +378,6 @@ namespace Dapper.Fluent
         }
 
         /// <summary>
-        /// Adds a parameter to the parameter collection with the parameter name, the parameter value, the data type, and marks it as output parameter.
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        /// <param name="value">The parameter value.</param>
-        /// <param name="dbType">One of the <see cref="System.Data.DbType"/> values.</param>
-        /// <returns>
-        /// A <see cref="Dapper.Fluent.IDbManager"/> instance.
-        /// </returns>
-        public IDbManager SetOutputParameter(string name, object value, DbType dbType)
-        {
-            return this.SetParameter(name, value, dbType, ParameterDirection.Output);
-        }
-
-        /// <summary>
-        /// Adds a parameter to the parameter collection with the parameter name, the data type, and marks it as output parameter.
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        /// <param name="dbType">One of the <see cref="System.Data.DbType"/> values.</param>
-        /// <returns>
-        /// A <see cref="Dapper.Fluent.IDbManager"/> instance.
-        /// </returns>
-        public IDbManager SetOutputParameter(string name, DbType dbType)
-        {
-            return this.SetParameter(name, null, dbType, ParameterDirection.Output);
-        }
-
-        /// <summary>
         /// Construct a parameter from object and adds a parameters to the parameter collection.
         /// </summary>
         /// <param name="value">Can be an anonymous type or a DynamicParameters bag.</param>

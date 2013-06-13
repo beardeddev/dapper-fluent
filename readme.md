@@ -19,8 +19,6 @@ IDbManager SetParameter(string name, object value);
 IDbManager SetParameter(string name, DbType dbType, ParameterDirection direction);
 IDbManager SetParameter(string name, object value, DbType dbType, ParameterDirection direction);
 IDbManager SetParameter(string name, object value, DbType dbType, ParameterDirection direction, int? size);
-IDbManager SetOutputParameter(string name, object value, DbType dbType);
-IDbManager SetOutputParameter(string name, DbType dbType);
 IDbManager SetParameters(object value);
 
 ```
@@ -52,25 +50,27 @@ IEnumerable<TResult> ExecuteMapping<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2
 ```csharp
 DbProviderFactory factory = DbProviderFactories.GetFactory(providerName);
 IDbConnection connection = factory.CreateConnection();
-IDbManager dbManager = new DbManager(connection);
+
 ```
-**Querying for posts by id using stored procedure:**
+**Querying for post by id using stored procedure:**
 ```csharp
-dbManager.SetSpCommand("sp_Posts_FindById", new { @id = id })
-    .ExecuteObject<Post>();
+using(IDbManager dbManager = new DbManager(connection))
+{
+	Post post = dbManager.SetSpCommand("sp_Posts_FindById", new { @id = id })
+    				.ExecuteObject<Post>();
+}    
 ```
 
-**Querying for posts:**
+**Querying for posts published for the last 7 days:**
 
 ```csharp
-dbManager.SetCommand("SELECT * FROM [dbo].[Posts] WHERE [PublishedOn] BETWEEN @StartDate AND @EndDate AND [Status] = @Status")
-    .AddParameter("StartDate", DateTime.UtcNow.AddDays(-7))
-    .AddParameter("EndDate", DateTime.UtcNow)
-    .AddParameter("Status", (byte)Status.Active)
-    .ExecuteList<Post>();
+using(IDbManager dbManager = new DbManager(connection))
+{
+	IEnumerable<Post> posts = dbManager.SetCommand("SELECT * FROM [dbo].[Posts] WHERE [PublishedOn] BETWEEN @StartDate AND @EndDate AND [Status] = @Status")
+    							.SetParameter("StartDate", DateTime.UtcNow.AddDays(-7))
+    							.SetParameter("EndDate", DateTime.UtcNow)
+    							.SetParameter("Status", (byte)Status.Active)
+    							.ExecuteList<Post>();
+}
 ```
-
-### TODO:
-- Implement output parameters handling
-- Add example of using IOC, best practices
 
