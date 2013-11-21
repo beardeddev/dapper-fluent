@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Dapper.Fluent</id>
+    <version>1.0.0.0</version>
+    <title>Dapper Fluent API</title>
+    <authors>beardeddev</authors>
+    <owners>beardeddev</owners>
+    <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/beardeddev/dapper-fluent</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>Dapper.Fluent is a small and easy library that supports fluent API for query construction and execution over database connection using Dapper.Net.</description>
+    <releaseNotes>Updated SqlMapper.</releaseNotes>
+    <copyright>Copyright 2013</copyright>
+    <tags>Dapper ORM Fluent</tags>
+  </metadata>
+</package>

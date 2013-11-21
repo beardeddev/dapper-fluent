@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Dapper.Fluent")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Dapper.Fluent is a small and easy library that supports fluent API for query construction and execution over database connection using Dapper.Net.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Dapper.Fluent")]

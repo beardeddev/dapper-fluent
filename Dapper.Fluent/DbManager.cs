@@ -17,7 +17,7 @@ namespace Dapper.Fluent
         private bool disposed;
         private bool buffered = true;
         private string commandText;
-        private int? commandTimeout;
+        private int? commandTimeout = null;
         private DynamicParameters parameters;
         private CommandType commandType;
         #endregion
