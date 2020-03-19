@@ -10,7 +10,7 @@ namespace Dapper.Fluent
     /// <summary>
     /// Implement this interface to enable services and instantiation for fluent database query construction and execution over connection.
     /// </summary>
-    public interface IDbManager : IDisposable
+    public partial interface IDbManager : IDisposable
     {
         /// <summary>
         /// Gets the transaction.
@@ -51,7 +51,7 @@ namespace Dapper.Fluent
         /// A collection of objects returned by the query.
         /// </returns>
         IEnumerable<T> ExecuteList<T>();
-        
+
         /// <summary>
         /// Executes SQL statement against the connection and returns the result.
         /// </summary>
@@ -187,8 +187,8 @@ namespace Dapper.Fluent
         /// <param name="name">The name of the parameter.</param>
         /// <param name="param">The parameter value.</param>
         /// <returns>A <see cref="Dapper.Fluent.IDbManager"/> instance.</returns>
-        IDbManager SetParameter(string name, object value);        
-        
+        IDbManager SetParameter(string name, object value);
+
         /// <summary>
         /// Construct a parameter from object and adds a parameters to the parameter collection.
         /// </summary>
@@ -203,7 +203,7 @@ namespace Dapper.Fluent
         /// <param name="name">The parameter name.</param>
         /// <returns>The value of parameter.</returns>
         T GetParameterValue<T>(string name);
-        
+
         /// <summary>
         /// Sets SQL statement.
         /// </summary>
@@ -218,7 +218,7 @@ namespace Dapper.Fluent
         /// <param name="parameters">The collection of parameters associated with SQL statement.</param>
         /// <returns>A <see cref="Dapper.Fluent.IDbManager"/> instance.</returns>
         IDbManager SetCommand(string commandText, object parameters);
-        
+
         /// <summary>
         /// Sets the stored procedure command.
         /// </summary>
@@ -232,6 +232,6 @@ namespace Dapper.Fluent
         /// <param name="commandText">The stored procedure command name and adds parameters to the parameter collection.</param>
         /// <param name="parameters">The collection of parameters associated with SQL statement.</param>
         /// <returns>A <see cref="Dapper.Fluent.IDbManager"/> instance.</returns>
-        IDbManager SetSpCommand(string commandText, object parameters);        
+        IDbManager SetSpCommand(string commandText, object parameters);
     }
 }

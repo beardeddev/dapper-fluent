@@ -5,6 +5,7 @@ using System.Text;
 using System.Data;
 using System.Collections;
 using System.Data.Common;
+using static Dapper.SqlMapper;
 
 namespace Dapper.Fluent
 {
@@ -39,7 +40,7 @@ namespace Dapper.Fluent
 
             this.DbConnection = connection;
             this.parameters = new DynamicParameters();
-        } 
+        }
         #endregion
 
         #region Transactions support implementation
@@ -80,7 +81,7 @@ namespace Dapper.Fluent
                 Transaction.Rollback();
 
             Transaction = null;
-        } 
+        }
         #endregion
 
         #region Public readonly members
@@ -303,7 +304,7 @@ namespace Dapper.Fluent
         public virtual IEnumerable<TResult> ExecuteMapping<T1, T2, T3, T4, T5, T6, TResult>(Func<T1, T2, T3, T4, T5, T6, TResult> map, string splitOn = "Id")
         {
             return this.DbConnection.Query<T1, T2, T3, T4, T5, T6, TResult>(this.commandText, map, this.parameters, this.Transaction, this.buffered, splitOn, this.commandTimeout, this.commandType);
-        }        
+        }
 
         /// <summary>
         /// Executes a SQL statement against the connection and returns the number of rows affected.
@@ -374,7 +375,7 @@ namespace Dapper.Fluent
         /// </returns>
         public IDbManager SetParameter(string name, object value)
         {
-            return this.SetParameter(name, value, SqlMapper.LookupDbType(value.GetType(), name), ParameterDirection.Input, null);
+            return this.SetParameter(name, value, SqlMapper.GetDbType(value), ParameterDirection.Input, null);
         }
 
         /// <summary>
@@ -442,7 +443,7 @@ namespace Dapper.Fluent
         {
             this.parameters.AddDynamicParams(parameters);
             return this.SetSpCommand(commandText);
-        } 
+        }
         #endregion
     }
 }

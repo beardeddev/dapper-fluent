@@ -9,4 +9,6 @@ packages/
 *.user
 *.vspscc
 *.vssscc
+*.vs
+.vs
 TestRunner.xunit

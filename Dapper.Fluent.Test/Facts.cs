@@ -1,27 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Data;
 using System.Data.Common;
-using System.Collections;
-using System.Configuration;
+using Dapper.Fluent.Tests.Entities;
+using Microsoft.Extensions.Configuration;
 
 using Xunit;
 
 namespace Dapper.Fluent.Tests
 {
-    using Dapper.Fluent.Tests.Entities;
+
 
     public class Facts
     {
-        private readonly ConnectionStringSettings connectionString = ConfigurationManager.ConnectionStrings["Dapper.Fluent.Tests.ConnectionString"];
+        private static readonly IConfiguration configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
 
         private IDbConnection GetConnection()
         {
-            DbProviderFactory factory = DbProviderFactories.GetFactory(connectionString.ProviderName);
+            DbProviderFactory factory = DbProviderFactories.GetFactory(configuration.GetSection("providerName").Value);
             IDbConnection connection = factory.CreateConnection();
-            connection.ConnectionString = connectionString.ConnectionString;
+            connection.ConnectionString = configuration.GetConnectionString("Dapper.Fluent.Tests.ConnectionString");
             return connection;
         }
 
@@ -103,8 +104,10 @@ namespace Dapper.Fluent.Tests
             using (IDbManager dbManager = GetDbManager())
             {
                 IEnumerable<EmployeeSalesByCountryResult> result = dbManager.SetSpCommand("Employee Sales by Country")
-                    .SetParameters(new { 
-                        @Beginning_Date = new DateTime(1996, 07, 04), @Ending_Date = new DateTime(1996, 07, 16) 
+                    .SetParameters(new
+                    {
+                        @Beginning_Date = new DateTime(1996, 07, 04),
+                        @Ending_Date = new DateTime(1996, 07, 16)
                     }).ExecuteList<EmployeeSalesByCountryResult>();
 
                 Assert.NotEmpty(result);
@@ -129,9 +132,10 @@ namespace Dapper.Fluent.Tests
         {
             using (IDbManager dbManager = GetDbManager())
             {
-                IEnumerable<EmployeeSalesByCountryResult> result = dbManager.SetSpCommand("Employee Sales by Country", new { 
-                        @Beginning_Date = new DateTime(1996, 07, 04) 
-                    }).SetParameter("@Ending_Date", new DateTime(1996, 07, 16))
+                IEnumerable<EmployeeSalesByCountryResult> result = dbManager.SetSpCommand("Employee Sales by Country", new
+                {
+                    @Beginning_Date = new DateTime(1996, 07, 04)
+                }).SetParameter("@Ending_Date", new DateTime(1996, 07, 16))
                     .ExecuteList<EmployeeSalesByCountryResult>();
 
                 Assert.NotEmpty(result);
@@ -211,7 +215,7 @@ namespace Dapper.Fluent.Tests
                 Assert.Equal(8, result.Item2.Count());
                 Assert.Equal(8, result.Item3.First());
             }
-        }        
+        }
 
         [Fact]
         public void Test_Should_Execute_MultiMapping()
@@ -222,10 +226,11 @@ namespace Dapper.Fluent.Tests
                           FROM [dbo].[Products] p
 	                        INNER JOIN [dbo].[Categories] c ON p.CategoryID = c.CategoryID")
                 .ExecuteMapping<Product, Category, Product>(
-                    (product, category) => { 
-                        product.Category = category; 
-                        return product; 
-                    }, 
+                    (product, category) =>
+                    {
+                        product.Category = category;
+                        return product;
+                    },
                     "CategoryID"
                 );
 
@@ -245,11 +250,12 @@ namespace Dapper.Fluent.Tests
 	                        INNER JOIN [dbo].[Categories] c ON p.CategoryID = c.CategoryID
 	                        INNER JOIN [dbo].[Suppliers] s ON p.SupplierID = s.SupplierID")
                 .ExecuteMapping<Product, Category, Supplier, Product>(
-                    (product, category, supplier) => { 
-                        product.Category = category; 
-                        product.Supplier = supplier; 
-                        return product; 
-                    }, 
+                    (product, category, supplier) =>
+                    {
+                        product.Category = category;
+                        product.Supplier = supplier;
+                        return product;
+                    },
                     "CategoryID, SupplierID"
                 );
 
@@ -272,12 +278,13 @@ namespace Dapper.Fluent.Tests
                       INNER JOIN [dbo].[Employees] e ON o.EmployeeID = e.EmployeeID
                       INNER JOIN [dbo].[Shippers] s ON o.ShipVia = s.ShipperID")
                 .ExecuteMapping<Order, Customer, Employee, Shipper, Order>(
-                    (order, customer, employee, shipper) => { 
-                        order.Customer = customer; 
-                        order.Employee = employee; 
-                        order.Shipper = shipper; 
-                        return order; 
-                    }, 
+                    (order, customer, employee, shipper) =>
+                    {
+                        order.Customer = customer;
+                        order.Employee = employee;
+                        order.Shipper = shipper;
+                        return order;
+                    },
                     "CustomerID, EmployeeID, ShipperID"
                 );
 
@@ -303,13 +310,14 @@ namespace Dapper.Fluent.Tests
                       INNER JOIN [dbo].[Shippers] s ON o.ShipVia = s.ShipperID
                       LEFT JOIN [dbo].[Employees] e2 ON e.ReportsTo = e2.EmployeeID")
                 .ExecuteMapping<Order, Customer, Employee, Shipper, Employee, Order>(
-                    (order, customer, employee, shipper, boss) => { 
-                        order.Customer = customer; 
-                        order.Employee = employee; 
-                        order.Shipper = shipper; 
-                        order.Employee.Boss = boss; 
-                        return order; 
-                    }, 
+                    (order, customer, employee, shipper, boss) =>
+                    {
+                        order.Customer = customer;
+                        order.Employee = employee;
+                        order.Shipper = shipper;
+                        order.Employee.Boss = boss;
+                        return order;
+                    },
                     "CustomerID, EmployeeID, ShipperID, EmployeeID"
                 );
 
