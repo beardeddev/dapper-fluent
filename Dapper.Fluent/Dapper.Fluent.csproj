@@ -2,10 +2,23 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <PackageId>Dapper.Fluent</PackageId>
+    <Version>2.0.0.0</Version>
+    <PackageTags>Dapper;ORM;Fluent</PackageTags>
+    <Title>Dapper Fluent</Title>
+    <Description>
+      Dapper.Fluent is a small and easy library that supports fluent API for query construction and execution over database connection using Dapper.Net.
+    </Description>
+    <Authors>beardeddev</Authors>
+    <Company>Copyright @beardeddev 2020</Company>
+    <RepositoryUrl>https://github.com/beardeddev/dapper-fluent</RepositoryUrl>
+    <PackageReleaseNotes>Dapper 2.0.30 in the core. Target .net core 3.1. Async query support.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.30" />
   </ItemGroup>
+
+</PropertyGroup>
 
 </Project>
